@@ -1,0 +1,52 @@
+[project]
+name = "bamboo"
+version = "0.1.0"
+description = "Flexible image analysis for the spatial biology era"
+readme = "README.md"
+authors = [
+    { name = "Tom Ouellette", email = "t.ouellette@mail.utoronto.ca" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "imagecodecs>=2023.3.16",
+    "numpy>=1.24.4",
+    "pillow>=10.4.0",
+    "tifffile>=2023.7.10",
+    "zarr>=3.0.1",
+    "torch>=2.0",
+    "tqdm>=4.67.1",
+    "matplotlib>=3.10.5",
+    "joblib>=1.5.1",
+    "anci>=0.1.2",
+]
+
+[project.optional-dependencies]
+tests = [
+    "pytest",
+]
+openslide = [
+    "openslide-python>=1.4.0",
+    "openslide-bin",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
+    "openslide-python>=1.4.0",
+    "openslide-bin"
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project.scripts]
+bamboo = "bamboo.cli:main"
+
+[tool.ruff]
+# F722 ignores forward annotation syntax rules (e.g in anci.Arg)
+ignore = ["F722"]  
+
+[tool.ruff.lint]
+# E402 is "Module level import not at top of file"
+per-file-ignores = { "__init__.py" = ["E402"] }

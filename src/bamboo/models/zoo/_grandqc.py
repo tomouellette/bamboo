@@ -1,14 +1,17 @@
 # Copyright (c) 2025, Tom Ouellette
 # Licensed under the Apache 2.0 License
 
+import os
 import numpy as np
 import torch
 
 from enum import Enum
 from numpy.typing import NDArray
+from pathlib import Path
 
 from bamboo.models import CACHE_DIR
 from bamboo.tile import RGBTile
+from bamboo.models._manager import download_model
 
 
 class GrandQCClasses(Enum):
@@ -33,6 +36,8 @@ class GrandQC:
     ----------
     device : str | torch.device
         A valid torch.device (e.g. "cpu", torch.device("cuda:0"), etc).
+    path : str | Path
+        Optional path to weights if outside BAMBOO_CACHE.
 
     References
     ----------
@@ -61,7 +66,11 @@ class GrandQC:
     # us to load the model only once per process instead of each time.
     _model: torch.nn.Module = None
 
-    def __init__(self, device: str | torch.device = "cpu"):
+    def __init__(self, device: str | torch.device = "cpu", path: str | Path = None):
+        if not os.path.isfile(self.weights):
+            print("Weights not found. Downloading `grandqc` weights to cache.")
+            download_model("grandqc", self.weights)
+
         self.device = device
 
     def _preprocess(self, tile: RGBTile) -> torch.Tensor:

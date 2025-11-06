@@ -1,5 +1,5 @@
 # Copyright (c) 2025, Tom Ouellette
-# Licensed under the Apache 2.0 License
+# Licensed under the GNU GPLv3 License
 
 import os
 import numpy as np

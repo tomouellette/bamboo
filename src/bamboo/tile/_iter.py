@@ -1,9 +1,12 @@
 # Copyright (c) 2025, Tom Ouellette
 # Licensed under the GNU GPLv3 License
 
+import itertools
 import matplotlib.pyplot as plt
-from typing import Any, Iterator
+
 from bamboo.tile import Tile
+from pathlib import Path
+from typing import Any, Iterator
 
 
 class Tiles(Iterator):
@@ -181,6 +184,7 @@ class Tiles(Iterator):
         width: int = None,
         resample: str | None = "bilinear",
         hide_axes: bool = True,
+        save_fig: str | Path = None,
     ) -> plt.Axes:
         """Visualize tile overlaid on image thumbnail.
 
@@ -211,6 +215,8 @@ class Tiles(Iterator):
             Alpha of tile colors.
         hide_axes : bool
             If True, then all x-axis, y-axis, and spines are removed.
+        save_fig : str | Path
+            Save figure to specified path.
 
         Returns
         -------
@@ -228,8 +234,10 @@ class Tiles(Iterator):
         if ax is None:
             fig, ax = plt.subplots(figsize=figsize)
 
+        coordinates, self.coordinates = itertools.tee(self.coordinates, 2)
+
         ax.imshow(thumbnail)
-        for coord in self.coordinates:
+        for coord in coordinates:
             x, y, w, h, *_ = coord
             x = int(x * scale)
             y = int(y * scale)
@@ -252,4 +260,8 @@ class Tiles(Iterator):
             for pos in ["left", "right", "top", "bottom"]:
                 ax.spines[pos].set_visible(False)
 
-        return ax
+        if isinstance(save_fig, (str, Path)):
+            plt.tight_layout()
+            plt.savefig(save_fig, bbox_inches="tight")
+        else:
+            return ax

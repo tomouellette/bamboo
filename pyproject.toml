@@ -1,6 +1,6 @@
 [project]
 name = "bamboo"
-version = "0.0.3"
+version = "0.0.4"
 description = "Flexible image analysis for the spatial biology era"
 readme = "README.md"
 authors = [

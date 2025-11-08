@@ -32,13 +32,14 @@ def brightfield_tile_extract(
     output: Arg[Path, "Output path."],
     tile_width: Arg[int, "Tile width."],
     tile_height: Arg[int, "Tile height."],
-    mpp: Arg[int, "Collect tiles at the specified microns per pixel."] = None,
+    mpp: Arg[float, "Collect tiles at the specified microns per pixel."] = None,
     overlap_x: Arg[int, "Horizontal overlap when saving tiles."] = 0,
     overlap_y: Arg[int, "Vertical overlap when saving tiles."] = 0,
     mmap: Arg[bool, "If True, use a memory map when writing .npy outputs."] = True,
     n_jobs: Arg[int, "Number of parallel jobs."] = 1,
     prefer: Arg[str, "Parallel backend hint."] = None,
     resample: Arg[str, "Resampling filter to use when resizing tiles."] = "bilinear",
+    save_fig: Arg[Path, "Save image thumbnail with tiles overlaid."] = None,
     silent: Arg[bool, "Suppress printed messages."] = False,
 ):
     """Extract and write all tiles from a brightfield gigapixel image."""
@@ -81,20 +82,22 @@ def brightfield_tile_extract(
         mode="enumerate",
     )
 
-    h, w = tiles.hw
     if isinstance(writer, ZarrWriter):
-        writer.chunks = (h, w, 3)
+        writer.chunks = (tile_height, tile_width, 3)
 
-    writer.shape = (tiles.n_tiles, h, w, 3)
+    writer.shape = (tiles.n_tiles, tile_height, tile_width, 3)
 
     @inject_writer(writer)
     def _worker(output: Array, data: tuple[tuple[int, ...], Tile]) -> np.ndarray:
         i, tile = data
-        output[i, :h, :w, :3] = tile.buffer[:, :, :3]
+        output[i, :tile_height, :tile_width, :3] = tile.buffer
 
     writer.create()
 
     try:
+        if save_fig:
+            tiles.show(save_fig=save_fig)
+
         apply_map(
             _worker,
             tiles,
@@ -120,7 +123,8 @@ def brightfield_tile_filter(
     tile_height: Arg[int, "Tile height."],
     min_tissue_fraction: Arg[float, "Minimum tissue fraction to keep a tile."] = 0.5,
     max_artifact_fraction: Arg[float, "Max artifact fraction to keep a tile."] = 0.0,
-    mpp: Arg[int, "Collect tiles at the specified microns per pixel."] = None,
+    max_marker_fraction: Arg[float, "Max marker fraction to keep a tile."] = 0.0,
+    mpp: Arg[float, "Collect tiles at the specified microns per pixel."] = None,
     overlap_x: Arg[int, "Horizontal overlap when saving tiles."] = 0,
     overlap_y: Arg[int, "Vertical overlap when saving tiles."] = 0,
     mmap: Arg[bool, "If True, use a memory map when writing .npy outputs."] = True,
@@ -129,6 +133,7 @@ def brightfield_tile_filter(
     resample: Arg[str, "Resampling filter to use when resizing tiles."] = "bilinear",
     device: Arg[str, "Device to run model on."] = "cpu",
     silent: Arg[bool, "Suppress printed messages."] = False,
+    save_fig: Arg[Path, "Save image thumbnail with tiles overlaid."] = None,
 ):
     """Filter and write all tiles from a brightfield gigapixel image."""
 
@@ -205,12 +210,13 @@ def brightfield_tile_filter(
 
     exclude_coords = []
     for r in results:
-        if any(
-            [
-                r["stats"]["TISSUE"] < min_tissue_fraction,
-                r["stats"]["ARTIFACT"] > max_artifact_fraction,
-            ]
-        ):
+        check_tissue = r["stats"]["TISSUE"] < min_tissue_fraction
+        check_artifact = r["stats"]["ARTIFACT"] > max_artifact_fraction
+        check_marker = False
+        if "MARKINGS" in r["stats"]:
+            check_marker = r["stats"]["MARKINGS"] > max_marker_fraction
+
+        if any([check_tissue, check_artifact, check_marker]):
             exclude_coords.append(r["coords"])
 
     # Note: We construct new tiles at the requested size and resolution, then
@@ -233,7 +239,9 @@ def brightfield_tile_filter(
     tiles.exclude(exclude_coords)
 
     if not silent:
-        print(f"Excluded a total of {n_tiles - tiles.n_tiles} after filtering.")
+        print(
+            f"Retained {n_tiles} and dropped {n_tiles - tiles.n_tiles} after filtering."
+        )
 
     # Note: We switch back to enumeration here since we don't need coordinate
     # information to write to tiles. With that said, users may want coordinate
@@ -243,20 +251,22 @@ def brightfield_tile_filter(
     # data.
     tiles.mode = "enumerate"
 
-    h, w = tiles.hw
     if isinstance(writer, ZarrWriter):
-        writer.chunks = (h, w, 3)
+        writer.chunks = (1, tile_height, tile_width, 3)
 
-    writer.shape = (tiles.n_tiles, h, w, 3)
+    writer.shape = (tiles.n_tiles, tile_height, tile_width, 3)
+
+    writer.create()
 
     @inject_writer(writer)
     def _worker(output: Array, data: tuple[tuple[int, ...], Tile]) -> np.ndarray:
         i, tile = data
-        output[i, :h, :w, :3] = tile.buffer[:, :, :3]
-
-    writer.create()
+        output[i, :tile_height, :tile_width, :3] = tile.buffer
 
     try:
+        if save_fig:
+            tiles.show(save_fig=save_fig)
+
         apply_map(
             _worker,
             tiles,

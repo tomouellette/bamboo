@@ -9,7 +9,6 @@ import tempfile
 from anci import Arg, cmd, base
 from pathlib import Path
 
-from bamboo.tools._resize import resize_mask_memmap, resize_mask_zarr
 from bamboo.writer import NumpyWriter, SharedMemoryWriter, MemmapWriter, ZarrWriter
 
 SUPPORTED_MODELS: set[str] = {"grandqc"}
@@ -30,7 +29,6 @@ def brightfield_nn_semantic(
     n_jobs: Arg[int, "Number of parallel jobs."] = 1,
     prefer: Arg[str, "Parallel backend hint."] = None,
     resample: Arg[str, "Resampling filter to use when resizing tiles."] = "bilinear",
-    resize: Arg[str, "Resize segmentation mask to original image size."] = False,
     device: Arg[str, "Device to run model on."] = "cpu",
     silent: Arg[bool, "Suppress printed messages."] = False,
 ):

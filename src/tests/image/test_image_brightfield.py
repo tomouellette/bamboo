@@ -86,7 +86,7 @@ def test_slides_auto():
 
 def test_images_auto():
     for image in [RgbBmp, RgbJpeg, RgbNpy, RgbPbm, RgbPng, RgbTga, RgbWebp]:
-        _ = Brightfield(image.path)
+        _ = Brightfield(image.path, mpp=0.5)
 
 
 def test_backend_tifffile():
@@ -98,11 +98,11 @@ def test_backend_openslide():
 
 
 def test_backend_memory():
-    _ = Brightfield(RgbBmp.path, backend="memory")
+    _ = Brightfield(RgbBmp.path, backend="memory", mpp=0.5)
 
 
 def test_indexing():
-    image = Brightfield(SlideSvs.path, level="2")
+    image = Brightfield(SlideSvs.path, level=2)
     h, w, c = image.backend.h, image.backend.w, 3
 
     assert isinstance(image[0, 0, 0], (int, np.integer))

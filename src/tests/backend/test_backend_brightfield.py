@@ -129,7 +129,7 @@ def test_tiff_formats():
             assert backend.mpp == (fmt.mpp_x + fmt.mpp_y) / 2.0
         if backend.levels_keys:
             assert backend.pyramidal
-            assert backend.l == "0"
+            assert backend.l == 0
         else:
             assert not backend.pyramidal
             assert backend.l is None
@@ -140,9 +140,8 @@ def test_tiff_formats():
 
 
 def test_tiff_indexing():
-    backend = BrightfieldTiffBackend(success_tiff.path, level="2")
+    backend = BrightfieldTiffBackend(success_tiff.path, level=2)
     h, w, c = backend.h, backend.w, 3
-    # Simplified check of shapes
     assert backend[0:5, 0:5, 0].shape == (5, 5)
     assert backend[0:2, 0:2, 0:c].shape == (2, 2, c)
     assert backend[...].shape == (h, w, c)
@@ -244,7 +243,7 @@ failure_mem = SlideError()
 
 
 def test_memory_init_str():
-    backend = BrightfieldMemoryBackend(success_mem.path)
+    backend = BrightfieldMemoryBackend(success_mem.path, mpp=0.5)
     for attr in [
         "path",
         "backend",
@@ -264,7 +263,7 @@ def test_memory_init_str():
 
 
 def test_memory_init_pathlib():
-    backend = BrightfieldMemoryBackend(Path(success_mem.path))
+    backend = BrightfieldMemoryBackend(Path(success_mem.path), mpp=0.5)
     for attr in [
         "path",
         "backend",
@@ -285,16 +284,16 @@ def test_memory_init_pathlib():
 
 def test_memory_validate_failure():
     with pytest.raises(ValueError):
-        _ = BrightfieldMemoryBackend(failure_mem.path)
+        _ = BrightfieldMemoryBackend(failure_mem.path, mpp=0.5)
 
 
 def test_memory_validate_level():
     with pytest.raises(ValueError):
-        _ = BrightfieldMemoryBackend(success_mem.path, level=2)
+        _ = BrightfieldMemoryBackend(success_mem.path, level=2, mpp=0.5)
 
 
 def test_memory_read():
-    backend = BrightfieldMemoryBackend(success_mem.path)
+    backend = BrightfieldMemoryBackend(success_mem.path, mpp=0.5)
     assert hasattr(backend, "data")
     assert isinstance(backend.data, np.ndarray)
 
@@ -302,7 +301,8 @@ def test_memory_read():
 def test_memory_formats():
     for fmt in FORMATS_MEMORY_BACKEND:
         path = Path(fmt.path)
-        backend = BrightfieldMemoryBackend(path)
+        with pytest.warns(UserWarning):
+            backend = BrightfieldMemoryBackend(path)
         assert backend.mpp_x == fmt.mpp_x
         assert backend.mpp_y == fmt.mpp_y
         if fmt.mpp_x and fmt.mpp_y:
@@ -316,7 +316,8 @@ def test_memory_formats():
 
 
 def test_memory_indexing():
-    backend = BrightfieldMemoryBackend(success_mem.path)
+    with pytest.warns(UserWarning):
+        backend = BrightfieldMemoryBackend(success_mem.path)
     h, w, c = backend.h, backend.w, 3
     assert backend[0:5, 0:5, 0].shape == (5, 5)
     assert backend[0:2, 0:2, 0:c].shape == (2, 2, c)

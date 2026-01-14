@@ -113,13 +113,13 @@ def test_rgb_tile_resize():
 
 
 def test_tiles_basic_iteration():
-    image = Brightfield(SlideSvs.path, level="2")
+    image = Brightfield(SlideSvs.path, level=2)
     for tile in Tiles(image, 128, 128):
         assert tile.shape == (128, 128, 3)
 
 
 def test_tiles_overlap():
-    image = Brightfield(SlideSvs.path, level="2")
+    image = Brightfield(SlideSvs.path, level=2)
     tiles = Tiles(image, tile_w=128, tile_h=128, overlap_x=64, overlap_y=64)
 
     tile_one = next(tiles)

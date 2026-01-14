@@ -133,9 +133,39 @@ class Brightfield:
         return self.backend.mpp
 
     def __getitem__(self, key: IndexKey) -> Numeric | NDArray[Numeric]:
+        """Index into the image data.
+
+        Parameters
+        ----------
+        key : IndexKey
+            Numpy-style indexing.
+
+        Returns
+        -------
+        Numeric | NDArray[Numeric]
+            Pixel value or array of pixel values.
+        """
         return self.backend[key]
 
     def tile(self, x: int, y: int, w: int, h: int) -> RGBTile:
+        """Extract a tile from the image.
+
+        Parameters
+        ----------
+        x : int
+            X-coordinate of the top-left corner of the tile.
+        y : int
+            Y-coordinate of the top-left corner of the tile.
+        w : int
+            Width of the tile.
+        h : int
+            Height of the tile.
+
+        Returns
+        -------
+        RGBTile
+            RGBTile object.
+        """
         if not (0 <= x < self.w) or not (0 <= y < self.h):
             raise ValueError(
                 f"x/y coordinates ({x}, {y}) must be within image dimensions ({self.w}, {self.h})"
@@ -152,6 +182,28 @@ class Brightfield:
         width: int | None = None,
         resample: str | None = "bilinear",
     ) -> RGBTile:
+        """Generate a thumbnail of the image.
+
+        Parameters
+        ----------
+        t : int
+            Target size (maximum dimension) of the thumbnail.
+        force : bool
+            If True, generate thumbnail even if image exceeds target size
+            or if image has no pyramid levels.
+        height : int | None
+            Optional height to resize the thumbnail to.
+        width : int | None
+            Optional width to resize the thumbnail to.
+        resample : str | None
+            Resampling method for resizing. One of 'nearest', 'bilinear',
+            'bicubic', or 'lanczos'.
+
+        Returns
+        -------
+        RGBTile
+            Thumbnail as an RGBTile object.
+        """
         if not self.levels_shape:
             if self.w > t or self.h > t:
                 if force:

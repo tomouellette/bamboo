@@ -4,7 +4,7 @@ Conversion of pathology models to torch traces or scripts for simplified interfa
 
 # Setup
 
-To ensure reproducibility, a conda environment is defined for each model. Conversion of each available model is outlined below. All converted models are saved in current directory as [model].traced.pt.
+To ensure reproducibility, a conda environment is defined for each model. Conversion of each available model is outlined below. All converted models are saved in the current directory as [model].traced.pt or [model].script.pt.
 
 ## GrandQC
 

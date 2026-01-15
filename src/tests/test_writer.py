@@ -1,5 +1,5 @@
 import numpy as np
-from bamboo.utils import Map, ProcessMap, ThreadMap
+from bamboo.map import Map, ProcessMap, ThreadMap
 from bamboo.writer import (
     SharedMemoryWriter,
     MemmapWriter,

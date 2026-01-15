@@ -2,7 +2,6 @@
 # Licensed under the GNU GPLv3 License
 
 from pathlib import Path
-from typing import Self
 
 from numpy.typing import NDArray
 from bamboo.types import IndexKey, Numeric

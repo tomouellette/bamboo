@@ -8,7 +8,7 @@ from typing import Callable
 from bamboo.tile import Tiles, Tile
 from bamboo.tools._resize import resize_nearest
 from bamboo.types import Array
-from bamboo.utils import apply_map
+from bamboo.map import apply_map
 from bamboo.writer import ArrayWriter, NumpyWriter, ZarrWriter, inject_writer
 
 
@@ -94,15 +94,12 @@ class Semantic:
         if writer.shape is None:
             writer.shape = (tiles.image_h, tiles.image_w)
 
-        if self.tiles.mode != "coords":
-            self.tiles.mode = "coords"
-
     def run(self, silent: bool = False) -> Array:
         self.writer.create()
 
         @inject_writer(self.writer)
         def _worker(output: Array, data: tuple[tuple[int, ...], Tile]) -> np.ndarray:
-            (x, y, w, h, overlap_w, overlap_h), tile = data
+            _, (x, y, w, h, overlap_w, overlap_h), tile = data
 
             processed = self.func(tile).astype(output.dtype)
             if processed.shape[:2] != (h, w):
@@ -159,15 +156,12 @@ class SemanticStats:
         self.n_jobs = n_jobs
         self.prefer = prefer
 
-        if self.tiles.mode != "coords":
-            self.tiles.mode = "coords"
-
     def run(self, silent: bool = False):
         """Run the segmentation and compute statistics for each tile."""
         results = []
 
         def _worker(data: tuple[tuple[int, ...], Tile]):
-            (x, y, w, h, overlap_w, overlap_h), tile = data
+            _, (x, y, w, h, overlap_w, overlap_h), tile = data
             mask = self.func(tile)
             stats = self.counter(mask)
             return {"stats": stats, "coords": [x, y, w, h, overlap_w, overlap_h]}

@@ -7,7 +7,7 @@ from anci import Arg, cmd, base
 from pathlib import Path
 
 from bamboo.types import Array
-from bamboo.utils import apply_map
+from bamboo.map import apply_map
 
 from bamboo.writer import (
     NumpyWriter,

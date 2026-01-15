@@ -11,3 +11,9 @@ To ensure reproducibility, a conda environment is defined for each model. Conver
 ```bash
 (./env/grandqc.sh && python models/grandqc.py && conda deactivate)
 ```
+
+## MedSigLIP
+
+```bash
+(./env/medsiglip.sh && python models/medsiglip.py && conda deactivate)
+```
